@@ -1,0 +1,32 @@
+{
+  "default": "principal",
+  "databases": {
+    "principal": {
+      "host": "localhost",
+      "port": 3050,
+      "database": "/caminho/para/ERP_DADOS.FDB",
+      "user": "SYSDBA",
+      "password": "masterkey",
+      "charset": "WIN1252",
+      "description": "Banco de dados principal do ERP"
+    },
+    "auditoria": {
+      "host": "localhost",
+      "port": 3050,
+      "database": "/caminho/para/ERP_LOGS.FDB",
+      "user": "SYSDBA",
+      "password": "masterkey",
+      "charset": "WIN1252",
+      "description": "Banco de dados secundário para auditoria e logs"
+    },
+    "homologacao": {
+      "host": "192.168.1.100",
+      "port": 3050,
+      "database": "/dados/ERP_TESTE.FDB",
+      "user": "SYSDBA",
+      "password": "masterkey",
+      "charset": "WIN1252",
+      "description": "Ambiente de testes / homologação"
+    }
+  }
+}

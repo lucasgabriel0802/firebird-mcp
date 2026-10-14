@@ -1,7 +1,7 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from .connection import connection_manager
 
-def get_database_health() -> Dict[str, Any]:
+def get_database_health(db_alias: Optional[str] = None) -> Dict[str, Any]:
     """
     Coleta métricas de telemetria e integridade através das tabelas MON$
     (disponíveis a partir do Firebird 2.1+), com foco no gap OAT/OIT.
@@ -29,7 +29,9 @@ def get_database_health() -> Dict[str, Any]:
         SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') FROM rdb$database
     """
 
-    with connection_manager.get_connection() as conn:
+    cfg = connection_manager.get_config(db_alias)
+
+    with connection_manager.get_connection(db_alias) as conn:
         cursor = conn.cursor()
 
         # Engine Version (FB 2.5+)
@@ -79,6 +81,8 @@ def get_database_health() -> Dict[str, Any]:
         )
 
     return {
+        "database_alias": cfg.alias,
+        "database_file": cfg.database,
         "engine_version": engine_version,
         "ods_version": f"{ods_major}.{ods_minor}",
         "page_size_bytes": page_size,
