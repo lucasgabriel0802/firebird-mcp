@@ -171,12 +171,42 @@ def main():
         default=None,
         help="Caminho explícito para o arquivo de configuração de bancos (ex: .firebird-mcp.json)"
     )
+    parser.add_argument(
+        "--transport",
+        "-t",
+        type=str,
+        choices=["stdio", "sse"],
+        default=None,
+        help="Transporte de comunicação: stdio (padrão para IDEs) ou sse (serviço HTTP/SSE)"
+    )
+    parser.add_argument(
+        "--host",
+        type=str,
+        default=None,
+        help="Host para escuta no modo SSE (padrão: 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--port",
+        "-p",
+        type=int,
+        default=None,
+        help="Porta para escuta no modo SSE (padrão: 8000)"
+    )
     args, unknown = parser.parse_known_args()
 
-    if args.config:
-        connection_manager.reload_config(explicit_path=args.config)
+    import os
+    config_path = args.config or os.getenv("FIREBIRD_CONFIG_PATH")
+    if config_path:
+        connection_manager.reload_config(explicit_path=config_path)
 
-    mcp.run(transport="stdio")
+    transport = args.transport or os.getenv("MCP_TRANSPORT", "stdio")
+    host = args.host or os.getenv("MCP_HOST", "0.0.0.0")
+    port = args.port or int(os.getenv("MCP_PORT", "8000"))
+
+    if transport == "sse":
+        mcp.run(transport="sse", host=host, port=port)
+    else:
+        mcp.run(transport="stdio")
 
 if __name__ == "__main__":
     main()

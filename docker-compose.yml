@@ -1,0 +1,46 @@
+services:
+  # =========================================================================
+  # 1. Firebird MCP Server (Modo Serviço SSE / HTTP)
+  # Acesse em: http://localhost:8000/sse
+  # =========================================================================
+  firebird-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: firebird-mcp:latest
+    container_name: firebird-mcp
+    restart: unless-stopped
+    command: ["--transport", "sse", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    environment:
+      - MCP_TRANSPORT=sse
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+    volumes:
+      # Monta o diretório atual para leitura automática do .firebird-mcp.json
+      - .:/workspace
+    extra_hosts:
+      # Garante resolução universal de host.docker.internal no Linux, Mac e Windows
+      - "host.docker.internal:host-gateway"
+
+  # =========================================================================
+  # 2. (Opcional) Banco Firebird 5.0 para testes locais imediatos
+  # Para subir junto: docker compose --profile test-db up -d
+  # =========================================================================
+  firebird-test-db:
+    image: jacobalberty/firebird:v5.0
+    container_name: firebird-test-db
+    profiles:
+      - test-db
+    restart: unless-stopped
+    ports:
+      - "3050:3050"
+    environment:
+      - ISC_PASSWORD=masterkey
+      - FIREBIRD_DATABASE=TESTE.FDB
+    volumes:
+      - firebird_data:/firebird/data
+
+volumes:
+  firebird_data:

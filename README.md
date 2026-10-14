@@ -119,14 +119,77 @@ Place a `.firebird-mcp.json` file in your repository:
 
 ---
 
-## 💻 Installation
+## 💻 Installation & Execution
 
-### Clone and Install Locally
+### 🐳 Option 1: Docker (Gold Standard — Recommended for Windows, macOS & Linux)
+Running via Docker eliminates all local Python runtime and dependency requirements:
+
+```bash
+# Clone and build the image locally:
+git clone https://github.com/lucasgabriel0802/firebird-mcp.git
+cd firebird-mcp
+docker build -t firebird-mcp:latest .
+```
+
+#### Universal IDE Configuration via Docker (Stdio Mode):
+Configure your IDE to launch the container on-demand. This configuration works seamlessly on **Windows, macOS, and Linux**:
+
+```json
+{
+  "mcpServers": {
+    "firebird": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v", "${workspaceFolder}:/workspace",
+        "-w", "/workspace",
+        "--add-host", "host.docker.internal:host-gateway",
+        "firebird-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+> **Why this is the Gold Standard:**
+> - `-i`: Keeps stdin/stdout open for JSON-RPC without allocating a pseudo-TTY (no `-t` to avoid byte corruption).
+> - `--rm`: Cleans up the container automatically when the IDE closes.
+> - `-v "${workspaceFolder}:/workspace"`: Mounts your current project for automatic `.firebird-mcp.json` discovery.
+> - `--add-host host.docker.internal:host-gateway`: Resolves your host machine's IP (e.g. Firebird running on port 3050 in Windows, macOS, or Linux) using `host.docker.internal`.
+
+---
+
+### 🚀 Option 2: Docker Compose (Background Service & Batteried Testing DB)
+
+#### A. Run as an HTTP/SSE Background Service
+If you prefer running the MCP server as a permanent background service on port `8000`:
+
+```bash
+docker compose up -d firebird-mcp
+```
+Connect via SSE endpoint: `http://localhost:8000/sse`.
+
+#### B. Full Local Testing Environment (with Firebird 5.0 Database)
+Spin up both the MCP server and a ready-to-test Firebird 5.0 database container:
+
+```bash
+docker compose --profile test-db up -d
+```
+This starts:
+- Firebird 5.0 on `localhost:3050` (password: `masterkey`, database: `TESTE.FDB`).
+- Firebird MCP Server on `http://localhost:8000/sse`.
+
+---
+
+### 🐍 Option 3: Local Python Virtual Environment
+
 ```bash
 git clone https://github.com/lucasgabriel0802/firebird-mcp.git ~/firebird-mcp
 cd ~/firebird-mcp
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 pip install -e .
 ```
@@ -135,11 +198,30 @@ pip install -e .
 
 ## ⚙️ Universal Configuration for Any IDE
 
-Because this server strictly follows the standard **MCP stdio protocol**, it connects seamlessly to any client:
-
 ### 1. Google Antigravity IDE
-Add the entry in `~/.gemini/config/mcp_config.json` or your workspace configuration:
+In `~/.gemini/config/mcp_config.json` (or workspace configuration):
 
+**Using Docker (Recommended):**
+```json
+{
+  "mcpServers": {
+    "firebird": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v", "${workspaceFolder}:/workspace",
+        "-w", "/workspace",
+        "--add-host", "host.docker.internal:host-gateway",
+        "firebird-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+**Or using Python Virtual Environment:**
 ```json
 {
   "mcpServers": {
@@ -155,15 +237,22 @@ Add the entry in `~/.gemini/config/mcp_config.json` or your workspace configurat
 ---
 
 ### 2. Cursor
-Add the entry in `.cursor/mcp.json` at the root of your project or in **Settings > Features > MCP**:
+In `.cursor/mcp.json` at your project root or in **Settings > Features > MCP**:
 
 ```json
 {
   "mcpServers": {
     "firebird": {
-      "command": "python",
-      "args": ["-m", "firebird_mcp.server"],
-      "cwd": "${workspaceFolder}"
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v", "${workspaceFolder}:/workspace",
+        "-w", "/workspace",
+        "--add-host", "host.docker.internal:host-gateway",
+        "firebird-mcp:latest"
+      ]
     }
   }
 }
@@ -171,16 +260,23 @@ Add the entry in `.cursor/mcp.json` at the root of your project or in **Settings
 
 ---
 
-### 3. VS Code (with Cline / Roo Code / Copilot MCP)
-In your `cline_mcp_settings.json` or Roo Code settings:
+### 3. VS Code (Cline / Roo Code / Copilot MCP)
+In `cline_mcp_settings.json` or Roo Code settings:
 
 ```json
 {
   "mcpServers": {
     "firebird": {
-      "command": "python3",
-      "args": ["-m", "firebird_mcp.server"],
-      "cwd": "${workspaceFolder}"
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v", "${workspaceFolder}:/workspace",
+        "-w", "/workspace",
+        "--add-host", "host.docker.internal:host-gateway",
+        "firebird-mcp:latest"
+      ]
     }
   }
 }

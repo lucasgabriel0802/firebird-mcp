@@ -1,0 +1,16 @@
+.git
+.gitignore
+venv
+.venv
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.env
+dist
+build
+*.egg-info
+.pytest_cache
+*.fdb
+*.gdb
+.firebird-mcp.json
