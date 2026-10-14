@@ -8,6 +8,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Correção cirúrgica para firebirdsql: garante encerramento imediato de transações
+# sem reter o OAT e evita 'cannot disconnect database with open transactions (1 active)'
+_orig_connection_exit = firebirdsql.fbcore.Connection.__exit__
+def _safe_connection_exit(self, exc, val, tb):
+    if getattr(self, "_transaction", None) and getattr(self._transaction, "_trans_handle", None) is not None:
+        self._transaction.is_dirty = True
+    return _orig_connection_exit(self, exc, val, tb)
+firebirdsql.fbcore.Connection.__exit__ = _safe_connection_exit
+
 @dataclass
 class DatabaseConfig:
     alias: str

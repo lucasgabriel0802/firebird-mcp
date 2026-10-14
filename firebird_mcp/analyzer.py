@@ -17,8 +17,9 @@ def explain_plan(sql: str, db_alias: Optional[str] = None) -> Dict[str, Any]:
     
     with connection_manager.get_connection(db_alias) as conn:
         cursor = conn.cursor()
-        cursor.prep(clean_sql)
-        plan_str = getattr(cursor, "plan", "") or "PLAN NOT AVAILABLE"
+        stmt = cursor.prep(clean_sql, explain_plan=True)
+        raw_plan = getattr(stmt, "plan", None) or getattr(getattr(stmt, "stmt", None), "plan", "") or ""
+        plan_str = raw_plan.strip() or "PLAN NOT AVAILABLE"
 
     # Heurística de análise do PLAN
     natural_tables = []
