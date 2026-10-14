@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "firebird-mcp"
 version = "0.1.0"
-description = "MCP Server for Firebird Database (2.5 to 5.0) - Introspection, Execution Plans and Best Practices"
+description = "Open-source community MCP Server for Firebird Database (2.5 to 5.0) - Multi-database, execution plans and inspection"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

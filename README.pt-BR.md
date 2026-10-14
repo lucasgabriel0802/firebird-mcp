@@ -7,7 +7,7 @@
 
 > 🌐 **Language / Idioma:** [English](README.md) | **Português (Brasil)**
 
-Servidor oficial de **Model Context Protocol (MCP)** para banco de dados **Firebird**, construído com suporte nativo a todas as versões (**Firebird 2.5, 3.0, 4.0 e 5.0**).
+Servidor open-source de **Model Context Protocol (MCP)** para banco de dados **Firebird**, desenvolvido para uso livre pela comunidade e com suporte a todas as versões principais (**Firebird 2.5, 3.0, 4.0 e 5.0**).
 
 Projetado de acordo com os **padrões abertos da indústria de servidores MCP (stdio / JSON-RPC 2.0)**, garantindo compatibilidade imediata com **qualquer IDE ou cliente de IA**: **Google Antigravity IDE**, **Cursor**, **Claude Desktop**, **VS Code (com extensões Cline / Roo Code)**, **Windsurf**, **Zed** e ferramentas CLI.
 
@@ -28,7 +28,7 @@ Projetado de acordo com os **padrões abertos da indústria de servidores MCP (s
 5. **Segurança Estrita de Leitura e MVCC**:
    - `fb_query` é restrito a leitura (`SELECT`), prevenindo alterações destrutivas acidentais.
    - Encerra transações imediatamente após a leitura, eliminando o risco de prender o **OAT (*Oldest Active Transaction*)** e inchar o arquivo `.fdb`.
-6. **Mapeamento Fiel aos Manuais Oficiais da Firebird Foundation**:
+6. **Mapeamento Abrangente de Catálogo do Sistema**:
    - Suporte completo aos metadados do catálogo de sistema `RDB$`, incluindo tipos modernos: `BOOLEAN` (FB3+), `INT128`, `DECFLOAT(16/34)`, `TIMESTAMP WITH TIME ZONE` (FB4+), `BLOB SUB_TYPE TEXT/BINARY` e seletividade de índices (`RDB$STATISTICS`).
 
 ---
@@ -260,6 +260,12 @@ Este servidor MCP forma uma **dupla imbatível** com a skill [`firebird-master`]
 │ • Padrões Delphi FireDAC │ • Auto-discovery do projeto │
 └──────────────────────────┴─────────────────────────────┘
 ```
+
+---
+
+## ⚖️ Isenção de Responsabilidade (Disclaimer) e Marcas
+
+Este é um projeto independente de código aberto e uso livre pela comunidade, distribuído sob a licença MIT. Não possui vínculo, afiliação, patrocínio, homologação ou endosso oficial com o Projeto Firebird ou com a Firebird Foundation. "Firebird" é uma marca registrada da Firebird Foundation.
 
 ---
 

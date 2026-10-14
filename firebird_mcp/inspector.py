@@ -1,8 +1,8 @@
 from typing import List, Dict, Any, Optional
 from .connection import connection_manager
 
-# Mapeamento oficial de tipos internos do Firebird (RDB$FIELDS.RDB$FIELD_TYPE)
-# Conforme documentação oficial do Firebird 1.5, 2.0, 2.5, 3.0, 4.0 e 5.0
+# Mapeamento de tipos internos do Firebird (RDB$FIELDS.RDB$FIELD_TYPE)
+# Compatível com as especificações do Firebird 1.5, 2.0, 2.5, 3.0, 4.0 e 5.0
 FIREBIRD_TYPE_MAP = {
     7: "SMALLINT",
     8: "INTEGER",

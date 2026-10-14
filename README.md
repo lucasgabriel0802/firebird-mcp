@@ -7,7 +7,7 @@
 
 > 🌐 **Language / Idioma:** **English** | [Português (Brasil)](README.pt-BR.md)
 
-Official **Model Context Protocol (MCP)** server for **Firebird Database**, providing native support for all major releases (**Firebird 2.5, 3.0, 4.0, and 5.0**).
+Open-source **Model Context Protocol (MCP)** server for **Firebird Database**, developed for free and independent community use with support for all major releases (**Firebird 2.5, 3.0, 4.0, and 5.0**).
 
 Built according to the **open industry standards for MCP servers (stdio / JSON-RPC 2.0)**, ensuring turnkey compatibility with **any AI client or IDE**: **Google Antigravity IDE**, **Cursor**, **Claude Desktop**, **VS Code (with Cline / Roo Code / Copilot extensions)**, **Windsurf**, **Zed**, and CLI tools.
 
@@ -28,8 +28,8 @@ Built according to the **open industry standards for MCP servers (stdio / JSON-R
 5. **Strict Query Safety & MVCC Best Practices**:
    - `fb_query` enforces read-only operations (`SELECT`), guarding against accidental data modification.
    - Commits read transactions immediately upon completion, preventing **OAT (*Oldest Active Transaction*)** stalls, garbage collection starvation, and runaway `.fdb` database file growth.
-6. **Faithful to Firebird Foundation Standards**:
-   - Full introspection of system catalog tables (`RDB$`), supporting modern types: `BOOLEAN` (FB3+), `INT128`, `DECFLOAT(16/34)`, `TIMESTAMP WITH TIME ZONE` (FB4+), `BLOB SUB_TYPE TEXT/BINARY`, and index selectivity (`RDB$STATISTICS`).
+6. **Broad System Catalog Mapping**:
+   - Comprehensive introspection of Firebird system catalog tables (`RDB$`), supporting types across versions: `BOOLEAN` (FB3+), `INT128`, `DECFLOAT(16/34)`, `TIMESTAMP WITH TIME ZONE` (FB4+), `BLOB SUB_TYPE TEXT/BINARY`, and index selectivity (`RDB$STATISTICS`).
 
 ---
 
@@ -260,6 +260,12 @@ This MCP server works hand-in-hand with the [`firebird-master`](https://github.c
 │   practices & index hints│ • Auto-discovers project DB │
 └──────────────────────────┴─────────────────────────────┘
 ```
+
+---
+
+## ⚖️ Disclaimer & Trademarks
+
+This is an independent open-source community project licensed under the MIT License. It is not affiliated with, funded by, endorsed by, or officially associated with the Firebird Project or the Firebird Foundation. "Firebird" is a registered trademark of the Firebird Foundation.
 
 ---
 
