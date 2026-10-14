@@ -1,7 +1,12 @@
 import sys
 import argparse
 from typing import Optional
-from mcp.server.fastmcp import FastMCP
+try:
+    # mcp 2.x
+    from mcp.server.mcpserver import MCPServer as FastMCP
+except ImportError:
+    # mcp 1.x
+    from mcp.server.fastmcp import FastMCP
 from .connection import connection_manager
 from .inspector import list_tables, list_views, list_procedures, list_generators, inspect_table
 from .analyzer import explain_plan, execute_query, execute_dml, execute_ddl
