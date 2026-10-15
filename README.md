@@ -82,10 +82,11 @@ Place a `.firebird-mcp.json` file in your repository:
 > **Security Tip:** Add `.firebird-mcp.json` to your `.gitignore` when working with sensitive credentials, providing a `.firebird-mcp.example.json` template for team members.
 
 ### Interacting with Multiple Databases:
+- **Create local configuration:** The `fb_create_config(...)` tool creates `.firebird-mcp.json` in the project root by requesting connection parameters from the user.
 - **Target a specific database:** All tools accept an optional `db_alias` parameter (e.g., `fb_query(sql="SELECT * FROM LOGS", db_alias="audit")`).
-- **List available databases:** The `fb_list_databases()` tool lists all configured aliases, connection statuses, and marks the currently active default.
-- **Switch the active database:** The `fb_use_database("audit")` tool sets the default database for subsequent commands during the session.
-- **Add databases on the fly:** `fb_configure_database(...)` allows registering new database connections dynamically during chat without restarting the IDE.
+- **List available databases:** The `fb_list_databases()` tool lists all configured aliases, selection status, and marks the currently active database.
+- **Switch the active database:** The `fb_use_database("audit")` tool sets the active database for subsequent commands during the session (mandatory to ask the user if multiple databases are configured).
+- **Add databases on the fly:** `fb_configure_database(...)` allows registering new database connections dynamically during chat and persisting to `.firebird-mcp.json`.
 
 ---
 
@@ -94,9 +95,10 @@ Place a `.firebird-mcp.json` file in your repository:
 ### Database & Connection Management
 | Tool | Parameters | Description |
 | :--- | :--- | :--- |
-| `fb_list_databases` | *None* | Lists all databases configured for the current project, the active config file, and the current default alias. |
-| `fb_use_database` | `alias` | Switches the default database for the active session. |
-| `fb_configure_database` | `alias`, `database`, `host`, `port`, `user`, `password`, `charset`, `set_as_default` | Registers or updates a connection dynamically at runtime. |
+| `fb_create_config` | `database`, `alias`, `host`, `port`, `user`, `password`, `charset`, `description`, `filepath` | Creates and saves `.firebird-mcp.json` in project root. Mandatory when no local config exists. |
+| `fb_list_databases` | *None* | Lists all databases configured for the current project, selection status, and active session database. |
+| `fb_use_database` | `alias` | Switches the active database for the current session. |
+| `fb_configure_database` | `alias`, `database`, `host`, `port`, `user`, `password`, `charset`, `set_as_default`, `save_to_file` | Registers or updates a connection dynamically at runtime and persists to local config. |
 | `fb_reload_config` | `config_path` *(optional)* | Reloads the project `.firebird-mcp.json` file. |
 
 ### Schema & Metadata Introspection

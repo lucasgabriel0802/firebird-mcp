@@ -20,18 +20,51 @@ mcp = FastMCP("firebird-mcp")
 # ==========================================
 
 @mcp.tool()
+def fb_create_config(
+    database: str,
+    alias: str = "principal",
+    host: str = "localhost",
+    port: int = 3050,
+    user: str = "SYSDBA",
+    password: str = "masterkey",
+    charset: str = "WIN1252",
+    description: Optional[str] = None,
+    filepath: Optional[str] = None
+) -> dict:
+    """
+    Cria e salva um novo arquivo de configuração local (.firebird-mcp.json) no projeto.
+    OBRIGATÓRIO: Use esta ferramenta quando não existir arquivo de configuração local no projeto,
+    solicitando previamente ao usuário os dados de conexão necessários (caminho .FDB, host, porta,
+    usuário, senha, charset e alias).
+    """
+    return connection_manager.create_config_file(
+        alias=alias,
+        database=database,
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        charset=charset,
+        description=description,
+        filepath=filepath
+    )
+
+@mcp.tool()
 def fb_list_databases() -> dict:
     """
-    Lista todos os bancos de dados Firebird configurados para o projeto atual,
-    o arquivo de configuração em uso (.firebird-mcp.json) e indica qual é o banco ativo (default).
+    Lista todos os bancos de dados Firebird configurados no arquivo local (.firebird-mcp.json).
+    Informa o status do arquivo local, o banco ativo na sessão e se há múltiplos bancos cadastrados
+    que exigem confirmação/pergunta ao usuário sobre em qual banco trabalhar.
     """
     return connection_manager.list_databases()
 
 @mcp.tool()
 def fb_use_database(alias: str) -> dict:
     """
-    Define o banco de dados ativo (default) da sessão entre os cadastrados no projeto.
-    Todas as chamadas seguintes que não especificarem 'db_alias' utilizarão este banco.
+    Define o banco de dados ativo da sessão entre os configurados no projeto.
+    OBRIGATÓRIO: Quando existirem múltiplos bancos configurados no arquivo local, SEMPRE pergunte
+    ao usuário em qual banco trabalhar e use esta ferramenta para ativar a escolha do usuário.
+    Todas as chamadas seguintes que não especificarem 'db_alias' utilizarão este banco ativo.
     """
     return connection_manager.set_default_database(alias)
 
@@ -45,10 +78,11 @@ def fb_configure_database(
     password: str = "masterkey",
     charset: str = "WIN1252",
     description: Optional[str] = None,
-    set_as_default: bool = False
+    set_as_default: bool = False,
+    save_to_file: bool = True
 ) -> dict:
     """
-    Cadastra ou atualiza um banco de dados dinamicamente no MCP em tempo de execução.
+    Cadastra ou atualiza um banco de dados dinamicamente no MCP e salva no arquivo local (.firebird-mcp.json).
     Ideal para adicionar conexões extras sem reiniciar a IDE.
     """
     return connection_manager.configure_database(
@@ -60,7 +94,8 @@ def fb_configure_database(
         password=password,
         charset=charset,
         description=description,
-        set_as_default=set_as_default
+        set_as_default=set_as_default,
+        save_to_file=save_to_file
     )
 
 @mcp.tool()
@@ -79,28 +114,32 @@ def fb_reload_config(config_path: Optional[str] = None) -> dict:
 @mcp.tool()
 def fb_list_tables(db_alias: Optional[str] = None) -> list:
     """
-    Lista todas as tabelas de usuário (não de sistema) do banco especificado (ou default).
+    Lista todas as tabelas de usuário (não de sistema) do banco especificado (ou ativo na sessão).
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return list_tables(db_alias=db_alias)
 
 @mcp.tool()
 def fb_list_views(db_alias: Optional[str] = None) -> list:
     """
-    Lista todas as views de usuário do banco especificado (ou default).
+    Lista todas as views de usuário do banco especificado (ou ativo na sessão).
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return list_views(db_alias=db_alias)
 
 @mcp.tool()
 def fb_list_procedures(db_alias: Optional[str] = None) -> list:
     """
-    Lista todas as Stored Procedures cadastradas no banco especificado (ou default).
+    Lista todas as Stored Procedures cadastradas no banco especificado (ou ativo na sessão).
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return list_procedures(db_alias=db_alias)
 
 @mcp.tool()
 def fb_list_generators(db_alias: Optional[str] = None) -> list:
     """
-    Lista todos os Generators / Sequences de usuário no banco especificado (ou default).
+    Lista todos os Generators / Sequences de usuário no banco especificado (ou ativo na sessão).
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return list_generators(db_alias=db_alias)
 
@@ -111,6 +150,7 @@ def fb_inspect_table(table_name: str, db_alias: Optional[str] = None) -> dict:
     - Colunas, tipos exatos (DECFLOAT, INT128, BOOLEAN, VARCHAR, BLOB SUB_TYPE), domínios e nullability
     - Chaves primárias (PK) e estrangeiras (FK)
     - Índices com ordem (ASC/DESC), colunas participantes e taxa de seletividade real (RDB$STATISTICS).
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return inspect_table(table_name=table_name, db_alias=db_alias)
 
@@ -124,6 +164,7 @@ def fb_explain_plan(sql: str, db_alias: Optional[str] = None) -> dict:
     Compila uma consulta SQL no Firebird e extrai o plano de execução compilado (PLAN).
     Analisa leituras sequenciais (NATURAL SCAN) em tabelas, ordenações em memória (SORT)
     e fornece recomendações cirúrgicas de indexação e reescrita.
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return explain_plan(sql=sql, db_alias=db_alias)
 
@@ -132,6 +173,7 @@ def fb_query(sql: str, limit: int = 50, db_alias: Optional[str] = None) -> dict:
     """
     Executa consulta SELECT de leitura no Firebird com limite seguro de linhas (1 a 1000).
     Seguro: Rejeita comandos de alteração de dados e encerra a transação com commit imediato.
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return execute_query(sql=sql, limit=limit, db_alias=db_alias)
 
@@ -140,6 +182,7 @@ def fb_execute_dml(sql: str, db_alias: Optional[str] = None) -> dict:
     """
     Executa comandos de manipulação de dados (INSERT, UPDATE, DELETE, EXECUTE PROCEDURE)
     com confirmação e encerramento de transação.
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return execute_dml(sql=sql, db_alias=db_alias)
 
@@ -147,6 +190,7 @@ def fb_execute_dml(sql: str, db_alias: Optional[str] = None) -> dict:
 def fb_execute_ddl(ddl: str, db_alias: Optional[str] = None) -> dict:
     """
     Executa comandos estruturais DDL no Firebird (como CREATE INDEX, ALTER TABLE, etc.) com commit explícito.
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return execute_ddl(ddl=ddl, db_alias=db_alias)
 
@@ -158,6 +202,7 @@ def fb_database_health(db_alias: Optional[str] = None) -> dict:
     - Tamanho de página (Page Size) e sweep interval
     - Diagnóstico do gap OAT (Oldest Active Transaction) vs Next Transaction para prevenção de inchaço do .fdb
     - Total de conexões ativas, transações e statements abertos.
+    Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
     return get_database_health(db_alias=db_alias)
 
