@@ -115,7 +115,10 @@ If you prefer a repository to isolate its own credentials, place a `.firebird-mc
    - If you mention the database in your prompt (e.g., *"investigate bug on audit database"* or *"check table X on pos"*), the agent/MCP resolves the alias immediately and connects **without asking confirmation questions**.
 3. **Smart Approximate Search:**
    - Switch databases using `fb_use_database("audit")` — the MCP matches exact names, substrings (e.g., `erp_audit`), and associated tags.
-
+4. **⚠️ Rigid Safety Rule: Mandatory Double Confirmation for DDL and Data Manipulation (DML):**
+   - Structural commands (`CREATE`, `ALTER`, `DROP`, `RECREATE`) and data mutation commands (`INSERT`, `UPDATE`, `DELETE`, `EXECUTE PROCEDURE`) are **NEVER** executed directly without prior explicit user consent.
+   - The assistant must present the exact SQL/DDL statement, explain its technical purpose, detail the impact (affected rows/tables, lock risks, irreversibility), and request confirmation.
+   - The MCP server blocks execution with an error unless the `confirmed=True` parameter is passed following the user's explicit affirmative response.
 
 ---
 
@@ -144,8 +147,8 @@ If you prefer a repository to isolate its own credentials, place a `.firebird-mc
 | :--- | :--- | :--- |
 | `fb_explain_plan` | `sql`, `db_alias` *(optional)* | Compiles the query in the engine, extracts the `PLAN`, highlights `NATURAL SCAN` warnings, and suggests indexing strategies. |
 | `fb_query` | `sql`, `limit` (default 50, max 1000), `db_alias` *(optional)* | Executes read-only `SELECT` queries with safety guards and immediate transaction commits. |
-| `fb_execute_dml` | `sql`, `db_alias` *(optional)* | Executes explicit `INSERT`, `UPDATE`, `DELETE`, or `EXECUTE PROCEDURE` statements. |
-| `fb_execute_ddl` | `ddl`, `db_alias` *(optional)* | Executes structural DDL statements (`CREATE INDEX`, `ALTER TABLE`, etc.) with explicit commit. |
+| `fb_execute_dml` | `sql`, `db_alias` *(optional)*, `confirmed` (default `false`) | Executes explicit `INSERT`, `UPDATE`, `DELETE`, or `EXECUTE PROCEDURE` statements. Requires mandatory double confirmation (`confirmed=True`). |
+| `fb_execute_ddl` | `ddl`, `db_alias` *(optional)*, `confirmed` (default `false`) | Executes structural DDL statements (`CREATE INDEX`, `ALTER TABLE`, etc.) with explicit commit. Requires mandatory double confirmation (`confirmed=True`). |
 | `fb_database_health` | `db_alias` *(optional)* | Audits database health via `MON$` tables (ODS version, page size, active attachments, and OAT-to-Next-Transaction gap). |
 
 ---

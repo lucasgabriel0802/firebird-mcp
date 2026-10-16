@@ -115,7 +115,10 @@ Caso prefira que um repositório possua suas próprias credenciais isoladas, bas
    - Se você indicar o banco na sua solicitação (ex: *"investigue o erro 500 no banco de auditoria"* ou *"consulte a tabela X no pdv"*), o assistente/MCP resolve o alias imediatamente e conecta de forma direta **sem perguntas de confirmação**.
 3. **Busca Inteligente por Aproximação:**
    - Você pode alternar bancos com `fb_use_database("auditoria")` — o MCP reconhece apelidos parciais (ex: `erp_auditoria`) ou tags associadas.
-
+4. **⚠️ Regra Rígida de Dupla Confirmação para DDL e Manipulação de Dados (DML):**
+   - Comandos estruturais (`CREATE`, `ALTER`, `DROP`, `RECREATE`) e comandos que alteram dados (`INSERT`, `UPDATE`, `DELETE`, `EXECUTE PROCEDURE`) **NUNCA** são executados diretamente sem autorização prévia.
+   - O assistente deve apresentar o SQL/DDL exato, explicar o objetivo, detalhar o impacto (tabelas e linhas afetadas, bloqueios, irreversibilidade) e solicitar sua autorização expressa.
+   - O servidor MCP bloqueia a execução com erro caso o parâmetro `confirmed=True` não seja passado após a sua resposta afirmativa.
 
 ---
 
@@ -144,8 +147,8 @@ Caso prefira que um repositório possua suas próprias credenciais isoladas, bas
 | :--- | :--- | :--- |
 | `fb_explain_plan` | `sql`, `db_alias` *(opcional)* | Compila a query no Firebird, extrai o `PLAN`, detecta `NATURAL SCAN` em tabelas e orienta sobre índices. |
 | `fb_query` | `sql`, `limit` (padrão 50, máx 1000), `db_alias` *(opcional)* | Executa consulta `SELECT` com leitura segura e commit imediato. |
-| `fb_execute_dml` | `sql`, `db_alias` *(opcional)* | Executa comandos `INSERT`, `UPDATE`, `DELETE` ou `EXECUTE PROCEDURE` com encerramento de transação. |
-| `fb_execute_ddl` | `ddl`, `db_alias` *(opcional)* | Executa comandos de definição estrutural (`CREATE INDEX`, `ALTER TABLE`, etc.) com commit explícito. |
+| `fb_execute_dml` | `sql`, `db_alias` *(opcional)*, `confirmed` (padrão `false`) | Executa comandos `INSERT`, `UPDATE`, `DELETE` ou `EXECUTE PROCEDURE`. Exige dupla confirmação obrigatória (`confirmed=True`). |
+| `fb_execute_ddl` | `ddl`, `db_alias` *(opcional)*, `confirmed` (padrão `false`) | Executa comandos de definição estrutural (`CREATE INDEX`, `ALTER TABLE`, etc.) com commit explícito. Exige dupla confirmação obrigatória (`confirmed=True`). |
 | `fb_database_health` | `db_alias` *(opcional)* | Diagnostica a saúde do banco via tabelas `MON$` (ODS, page size e gap entre OAT e Next Transaction). |
 
 ---

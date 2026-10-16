@@ -183,21 +183,40 @@ def fb_query(sql: str, limit: int = 50, db_alias: Optional[str] = None) -> dict:
     return execute_query(sql=sql, limit=limit, db_alias=db_alias)
 
 @mcp.tool()
-def fb_execute_dml(sql: str, db_alias: Optional[str] = None) -> dict:
+def fb_execute_dml(sql: str, db_alias: Optional[str] = None, confirmed: bool = False) -> dict:
     """
-    Executa comandos de manipulação de dados (INSERT, UPDATE, DELETE, EXECUTE PROCEDURE)
-    com confirmação e encerramento de transação.
+    Executa comandos de manipulação de dados (INSERT, UPDATE, DELETE, EXECUTE PROCEDURE).
+    
+    REGRA RÍGIDA DE SEGURANÇA — DUPLA CONFIRMAÇÃO OBRIGATÓRIA:
+    O assistente NUNCA deve executar comandos DML sem autorização expressa do usuário.
+    Etapas obrigatórias antes da execução:
+    1. Apresentar o SQL exato que será executado.
+    2. Explicar claramente o que o comando faz.
+    3. Detalhar o impacto no banco (tabelas e registros afetados, reversibilidade, riscos de lock ou perda de dados).
+    4. Solicitar a confirmação direta do usuário para prosseguir.
+    
+    SOMENTE após o usuário responder confirmando expressamente no chat, reexecute passando confirmed=True.
     Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
-    return execute_dml(sql=sql, db_alias=db_alias)
+    return execute_dml(sql=sql, db_alias=db_alias, confirmed=confirmed)
 
 @mcp.tool()
-def fb_execute_ddl(ddl: str, db_alias: Optional[str] = None) -> dict:
+def fb_execute_ddl(ddl: str, db_alias: Optional[str] = None, confirmed: bool = False) -> dict:
     """
-    Executa comandos estruturais DDL no Firebird (como CREATE INDEX, ALTER TABLE, etc.) com commit explícito.
+    Executa comandos estruturais DDL no Firebird (CREATE, ALTER, DROP, RECREATE, etc.) com commit explícito.
+    
+    REGRA RÍGIDA DE SEGURANÇA — DUPLA CONFIRMAÇÃO OBRIGATÓRIA:
+    O assistente NUNCA deve executar comandos estruturais sem autorização expressa do usuário.
+    Etapas obrigatórias antes da execução:
+    1. Apresentar a instrução DDL exata que será executada.
+    2. Explicar claramente o que ela altera na estrutura do banco.
+    3. Detalhar o impacto técnico (bloqueios exclusivos de metadados, dependências, irreversibilidade de DROP).
+    4. Solicitar a confirmação direta do usuário para prosseguir.
+    
+    SOMENTE após o usuário responder confirmando expressamente no chat, reexecute passando confirmed=True.
     Se houver múltiplos bancos no projeto e nenhum estiver ativo na sessão, pergunte antes ao usuário.
     """
-    return execute_ddl(ddl=ddl, db_alias=db_alias)
+    return execute_ddl(ddl=ddl, db_alias=db_alias, confirmed=confirmed)
 
 @mcp.tool()
 def fb_database_health(db_alias: Optional[str] = None) -> dict:

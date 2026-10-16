@@ -14,9 +14,14 @@ class TestFirebirdConnectionRules(unittest.TestCase):
         self.test_dir = tempfile.mkdtemp(prefix="fb_test_")
         self.original_cwd = os.getcwd()
         os.chdir(self.test_dir)
+        self.fake_home = Path(self.test_dir) / "fake_home"
+        self.fake_home.mkdir(parents=True, exist_ok=True)
+        self.home_patcher = patch("pathlib.Path.home", return_value=self.fake_home)
+        self.home_patcher.start()
         self.manager = FirebirdConnectionManager()
 
     def tearDown(self):
+        self.home_patcher.stop()
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
@@ -68,7 +73,7 @@ class TestFirebirdConnectionRules(unittest.TestCase):
     def test_global_catalog_loading_and_fallback(self):
         """Testa o carregamento do Catálogo Central Global (~/.firebird-mcp.json)."""
         mock_home = Path(self.test_dir) / "fake_home"
-        mock_home.mkdir()
+        mock_home.mkdir(exist_ok=True)
         global_config = mock_home / ".firebird-mcp.json"
         
         catalog_data = {
@@ -100,7 +105,7 @@ class TestFirebirdConnectionRules(unittest.TestCase):
     def test_local_config_precedence_over_global_catalog(self):
         """O arquivo local do projeto deve ter precedência sobre o catálogo global."""
         mock_home = Path(self.test_dir) / "fake_home"
-        mock_home.mkdir()
+        mock_home.mkdir(exist_ok=True)
         global_config = mock_home / ".firebird-mcp.json"
         with open(global_config, "w", encoding="utf-8") as f:
             json.dump({"databases": {"db_global": {"database": "/dados/GLOBAL.FDB"}}}, f)

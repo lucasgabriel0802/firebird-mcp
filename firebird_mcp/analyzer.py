@@ -111,16 +111,57 @@ def execute_query(sql: str, limit: int = 50, db_alias: Optional[str] = None) -> 
             "limit_applied": limit
         }
 
-def execute_dml(sql: str, db_alias: Optional[str] = None) -> Dict[str, Any]:
+def execute_dml(sql: str, db_alias: Optional[str] = None, confirmed: bool = False) -> Dict[str, Any]:
     """
     Executa comandos de manipulação de dados (INSERT, UPDATE, DELETE, EXECUTE PROCEDURE)
     com confirmação e commit imediato.
+    Exige confirmação explícita (confirmed=True) após o usuário autorizar no chat.
     """
     clean_sql = sql.strip().rstrip(";")
+    if not clean_sql:
+        raise ValueError("Comando SQL não pode ser vazio.")
 
-    first_word = clean_sql.split(None, 1)[0].upper() if clean_sql else ""
-    if first_word in ("DROP", "ALTER", "CREATE", "RECREATE"):
-        raise ValueError(f"Comando DDL '{first_word}' deve ser executado através de fb_execute_ddl.")
+    first_word = clean_sql.split(None, 1)[0].upper()
+    if first_word in ("DROP", "ALTER", "CREATE", "RECREATE", "COMMENT"):
+        raise ValueError(
+            f"Comando estrutural DDL '{first_word}' não deve ser executado em fb_execute_dml. "
+            "Utilize a ferramenta específica fb_execute_ddl."
+        )
+    if first_word in ("SELECT", "WITH"):
+        raise ValueError(
+            f"Comando de leitura '{first_word}' não deve ser executado em fb_execute_dml. "
+            "Utilize a ferramenta fb_query para consultas de leitura."
+        )
+
+    # Obter configuração do banco para contextualizar a mensagem de segurança
+    try:
+        cfg = connection_manager.get_config(db_alias)
+        target_db_name = f"'{cfg.alias}' ({cfg.database})"
+    except Exception:
+        target_db_name = f"'{db_alias}'" if db_alias else "banco ativo"
+
+    # Trava de segurança rígida: dupla confirmação
+    if not confirmed:
+        upper_sql = clean_sql.upper()
+        risk_alert = ""
+        if first_word in ("UPDATE", "DELETE") and " WHERE " not in f" {upper_sql} ":
+            risk_alert = "\n⚠️ ALERTA DE ALTO RISCO: Este comando NÃO possui cláusula WHERE e afetará TODOS os registros da tabela!"
+
+        raise PermissionError(
+            f"BLOQUEIO DE SEGURANÇA — DUPLA CONFIRMAÇÃO OBRIGATÓRIA:\n"
+            f"A execução do comando DML ({first_word}) no banco {target_db_name} foi interrompida.\n"
+            f"SQL proposto: {clean_sql}{risk_alert}\n\n"
+            "REGRA RÍGIDA DE SEGURANÇA:\n"
+            "Nenhum comando de manipulação de dados (INSERT, UPDATE, DELETE, EXECUTE PROCEDURE) "
+            "pode ser executado sem dupla confirmação expressa do usuário.\n\n"
+            "O assistente DEVE apresentar ao usuário:\n"
+            "1. O comando SQL exato que será executado.\n"
+            "2. Explicação clara do objetivo da alteração.\n"
+            "3. O impacto detalhado (tabelas afetadas, volume estimado de registros, riscos de lock ou perda de dados).\n"
+            "4. Solicitar a confirmação direta do usuário para prosseguir.\n\n"
+            "SOMENTE após o usuário responder confirmando expressamente no chat, "
+            "execute novamente passando confirmed=True."
+        )
 
     with connection_manager.get_connection(db_alias) as conn:
         cursor = conn.cursor()
@@ -133,14 +174,61 @@ def execute_dml(sql: str, db_alias: Optional[str] = None) -> Dict[str, Any]:
         "database_alias": cfg.alias,
         "status": "SUCCESS",
         "affected_rows": rowcount,
-        "message": f"Comando DML executado com sucesso no banco '{cfg.alias}'."
+        "message": f"Comando DML executado com sucesso no banco '{cfg.alias}' após dupla confirmação.",
+        "sql": clean_sql
     }
 
-def execute_ddl(ddl: str, db_alias: Optional[str] = None) -> Dict[str, Any]:
+def execute_ddl(ddl: str, db_alias: Optional[str] = None, confirmed: bool = False) -> Dict[str, Any]:
     """
     Executa comandos estruturais DDL (CREATE INDEX, ALTER TABLE, etc.) com commit explícito.
+    Exige confirmação explícita (confirmed=True) após o usuário autorizar no chat.
     """
     clean_ddl = ddl.strip().rstrip(";")
+    if not clean_ddl:
+        raise ValueError("Comando DDL não pode ser vazio.")
+
+    first_word = clean_ddl.split(None, 1)[0].upper()
+    if first_word in ("INSERT", "UPDATE", "DELETE"):
+        raise ValueError(
+            f"Comando de manipulação DML '{first_word}' não deve ser executado em fb_execute_ddl. "
+            "Utilize a ferramenta específica fb_execute_dml."
+        )
+    if first_word in ("SELECT", "WITH"):
+        raise ValueError(
+            f"Comando de leitura '{first_word}' não deve ser executado em fb_execute_ddl. "
+            "Utilize a ferramenta fb_query para consultas de leitura."
+        )
+
+    # Obter configuração do banco para contextualizar a mensagem de segurança
+    try:
+        cfg = connection_manager.get_config(db_alias)
+        target_db_name = f"'{cfg.alias}' ({cfg.database})"
+    except Exception:
+        target_db_name = f"'{db_alias}'" if db_alias else "banco ativo"
+
+    # Trava de segurança rígida: dupla confirmação
+    if not confirmed:
+        risk_alert = ""
+        if first_word == "DROP":
+            risk_alert = "\n⚠️ ALERTA DE ALTO RISCO: O comando DROP é DESTRUTIVO e IRREVERSÍVEL sem backup!"
+        elif first_word == "RECREATE":
+            risk_alert = "\n⚠️ ALERTA DE ALTO RISCO: O comando RECREATE recriará o objeto apagando a estrutura e dados anteriores!"
+
+        raise PermissionError(
+            f"BLOQUEIO DE SEGURANÇA — DUPLA CONFIRMAÇÃO OBRIGATÓRIA:\n"
+            f"A execução do comando DDL ({first_word}) no banco {target_db_name} foi interrompida.\n"
+            f"DDL proposta: {clean_ddl}{risk_alert}\n\n"
+            "REGRA RÍGIDA DE SEGURANÇA:\n"
+            "Nenhum comando estrutural DDL (CREATE, ALTER, DROP, RECREATE) pode ser executado "
+            "sem dupla confirmação expressa do usuário.\n\n"
+            "O assistente DEVE apresentar ao usuário:\n"
+            "1. A instrução DDL exata que será executada.\n"
+            "2. Explicação clara do que ela modifica na estrutura do banco.\n"
+            "3. O impacto detalhado (tabelas/índices afetados, dependências, lock exclusivo de metadados, irreversibilidade).\n"
+            "4. Solicitar a confirmação direta do usuário para prosseguir.\n\n"
+            "SOMENTE após o usuário responder confirmando expressamente no chat, "
+            "execute novamente passando confirmed=True."
+        )
 
     with connection_manager.get_connection(db_alias) as conn:
         cursor = conn.cursor()
@@ -151,6 +239,6 @@ def execute_ddl(ddl: str, db_alias: Optional[str] = None) -> Dict[str, Any]:
     return {
         "database_alias": cfg.alias,
         "status": "SUCCESS",
-        "message": f"Comando DDL executado com sucesso no banco '{cfg.alias}'.",
+        "message": f"Comando DDL executado com sucesso no banco '{cfg.alias}' após dupla confirmação.",
         "ddl": clean_ddl
     }
