@@ -39,54 +39,83 @@ Real-world production codebases (such as enterprise ERPs in Delphi, Laravel, or 
 - Different databases per project/workspace.
 - Multiple databases within the same project (e.g., operational database `ERP_DATA.FDB` and audit trail `AUDIT_LOGS.FDB`).
 
-### Automatic Project Discovery:
-The server automatically searches for `.firebird-mcp.json` at the root of the project (or traversing parent directories up to the workspace root).
+### Where and How to Configure Databases:
 
-Place a `.firebird-mcp.json` file in your repository:
+Firebird MCP provides two flexible organization patterns:
+
+#### Option A (Recommended Default): Central Global Catalog (`~/.firebird-mcp.json`)
+Instead of scattering `.firebird-mcp.json` files across every repository, maintain a **single central catalog** in your user home directory (`~/.firebird-mcp.json` on Linux/macOS or `C:\Users\YourUser\.firebird-mcp.json` on Windows).
+
+In this catalog, you register all databases on your machine and use the `"projects"` property to specify which projects/repositories use each database:
 
 ```json
 {
-  "default": "main",
+  "default": "erp_main",
   "databases": {
-    "main": {
+    "erp_main": {
       "host": "localhost",
       "port": 3050,
       "database": "/var/data/ERP_DATA.FDB",
       "user": "SYSDBA",
       "password": "masterkey",
       "charset": "WIN1252",
-      "description": "Primary operational database"
+      "description": "Primary ERP operational database",
+      "projects": ["web_projects", "erp-desktop"],
+      "tags": ["erp", "financial", "sales"]
     },
-    "audit": {
+    "erp_audit": {
       "host": "localhost",
       "port": 3050,
       "database": "/var/data/AUDIT_LOGS.FDB",
       "user": "SYSDBA",
       "password": "masterkey",
       "charset": "WIN1252",
-      "description": "Secondary database for audit trails and system logs"
+      "description": "Secondary database for audit trails and logs",
+      "projects": ["web_projects", "erp-desktop"],
+      "tags": ["audit", "logs", "security"]
     },
-    "staging": {
-      "host": "192.168.1.50",
+    "pos_store": {
+      "host": "192.168.1.10",
       "port": 3050,
-      "database": "D:\\data\\STAGING.FDB",
+      "database": "C:\\POS\\STORE.FDB",
       "user": "SYSDBA",
       "password": "masterkey",
       "charset": "WIN1252",
-      "description": "Remote staging/test environment"
+      "description": "Store front checkout database",
+      "projects": ["pos-vcl"],
+      "tags": ["pos", "cashier"]
+    },
+    "shared_staging": {
+      "host": "localhost",
+      "port": 3050,
+      "database": "/data/STAGING.FDB",
+      "user": "SYSDBA",
+      "password": "masterkey",
+      "charset": "WIN1252",
+      "description": "Shared staging/test database accessible across all projects",
+      "projects": []
     }
   }
 }
 ```
 
-> **Security Tip:** Add `.firebird-mcp.json` to your `.gitignore` when working with sensitive credentials, providing a `.firebird-mcp.example.json` template for team members.
+> **Tip on Shared Databases:** Databases with an empty `"projects": []` array or `"*"` are treated as global shared databases and remain visible across all workspaces.
 
-### Interacting with Central Database Catalog & Projects:
-- **Central Global Catalog (~/.firebird-mcp.json):** Keeps all Firebird database connections centralized in one single file on your machine, with project metadata (`projects: ["web_projects", "erp"]`) and tags.
-- **Local Config Precedence:** If a project has a local `.firebird-mcp.json` in its root directory, it takes precedence over the global catalog.
-- **Direct Investigation Targeting:** When you mention a database in your prompt (e.g. *"investigate bug on audit database"*), the assistant connects directly via `db_alias` or `fb_use_database` without asking redundant confirmation questions.
-- **Project Contextual Filtering:** When running generic commands, the MCP filters databases associated with the active project. If multiple exist, it asks you to pick one; if only one exists, it auto-selects.
-- **Smart Alias Resolution:** `fb_use_database("audit")` automatically resolves matching aliases like `erp_audit_prod` or tags.
+#### Option B: Local Project Configuration (`.firebird-mcp.json`)
+If you prefer a repository to isolate its own credentials, place a `.firebird-mcp.json` file in the project root. The MCP checks for a local project file first; if present, it has **absolute precedence** over the global catalog.
+
+---
+
+### How the Agent Interacts with Databases:
+1. **Automatic Workspace Context (CWD):**
+   - When you open a workspace (e.g., `/home/lucas/web_projects`), the MCP automatically resolves the active project and filters databases matching that project.
+   - **Single Database in Project:** The MCP auto-selects the database without asking unnecessary questions.
+   - **Multiple Databases in Project (e.g., main and audit):** For generic commands (e.g., *"run a select on orders"*), the MCP halts and asks which database to use.
+2. **Direct Investigation Targeting (Zero Friction):**
+   - If you mention the database in your prompt (e.g., *"investigate bug on audit database"* or *"check table X on pos"*), the agent/MCP resolves the alias immediately and connects **without asking confirmation questions**.
+3. **Smart Approximate Search:**
+   - Switch databases using `fb_use_database("audit")` — the MCP matches exact names, substrings (e.g., `erp_audit`), and associated tags.
+
 
 ---
 

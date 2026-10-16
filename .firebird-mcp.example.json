@@ -8,7 +8,9 @@
       "user": "SYSDBA",
       "password": "masterkey",
       "charset": "WIN1252",
-      "description": "Banco de dados principal do ERP"
+      "description": "Banco de dados principal do ERP",
+      "projects": ["web_projects", "erp-desktop"],
+      "tags": ["producao", "erp", "financeiro"]
     },
     "auditoria": {
       "host": "localhost",
@@ -17,7 +19,20 @@
       "user": "SYSDBA",
       "password": "masterkey",
       "charset": "WIN1252",
-      "description": "Banco de dados secundário para auditoria e logs"
+      "description": "Banco de dados secundário para auditoria e logs",
+      "projects": ["web_projects", "erp-desktop"],
+      "tags": ["auditoria", "logs", "seguranca"]
+    },
+    "pdv_caixa": {
+      "host": "192.168.1.10",
+      "port": 3050,
+      "database": "C:\\PDV\\DADOS.FDB",
+      "user": "SYSDBA",
+      "password": "masterkey",
+      "charset": "WIN1252",
+      "description": "Frente de caixa da loja",
+      "projects": ["pdv-vcl"],
+      "tags": ["pdv", "caixa"]
     },
     "homologacao": {
       "host": "192.168.1.100",
@@ -26,7 +41,8 @@
       "user": "SYSDBA",
       "password": "masterkey",
       "charset": "WIN1252",
-      "description": "Ambiente de testes / homologação"
+      "description": "Ambiente de testes / homologação compartilhado",
+      "projects": []
     }
   }
 }
