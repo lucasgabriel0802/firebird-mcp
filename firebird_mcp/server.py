@@ -29,13 +29,13 @@ def fb_create_config(
     password: str = "masterkey",
     charset: str = "WIN1252",
     description: Optional[str] = None,
+    projects: Optional[list] = None,
+    tags: Optional[list] = None,
     filepath: Optional[str] = None
 ) -> dict:
     """
-    Cria e salva um novo arquivo de configuração local (.firebird-mcp.json) no projeto.
-    OBRIGATÓRIO: Use esta ferramenta quando não existir arquivo de configuração local no projeto,
-    solicitando previamente ao usuário os dados de conexão necessários (caminho .FDB, host, porta,
-    usuário, senha, charset e alias).
+    Cria e salva um novo arquivo de configuração (Catálogo Central Global ~/.firebird-mcp.json por padrão).
+    Permite associar o banco a projetos específicos (ex: projects=['web_projects']) e tags.
     """
     return connection_manager.create_config_file(
         alias=alias,
@@ -46,24 +46,25 @@ def fb_create_config(
         password=password,
         charset=charset,
         description=description,
+        projects=projects,
+        tags=tags,
         filepath=filepath
     )
 
 @mcp.tool()
-def fb_list_databases() -> dict:
+def fb_list_databases(project_filter: Optional[str] = None) -> dict:
     """
-    Lista todos os bancos de dados Firebird configurados no arquivo local (.firebird-mcp.json).
-    Informa o status do arquivo local, o banco ativo na sessão e se há múltiplos bancos cadastrados
-    que exigem confirmação/pergunta ao usuário sobre em qual banco trabalhar.
+    Lista todos os bancos de dados Firebird configurados no Catálogo Central Global (~/.firebird-mcp.json)
+    ou arquivo local, identificando os bancos correspondentes ao projeto ativo.
+    Informa se há necessidade de confirmação/pergunta ao usuário quando houver múltiplos bancos no projeto.
     """
-    return connection_manager.list_databases()
+    return connection_manager.list_databases(project_filter=project_filter)
 
 @mcp.tool()
 def fb_use_database(alias: str) -> dict:
     """
-    Define o banco de dados ativo da sessão entre os configurados no projeto.
-    OBRIGATÓRIO: Quando existirem múltiplos bancos configurados no arquivo local, SEMPRE pergunte
-    ao usuário em qual banco trabalhar e use esta ferramenta para ativar a escolha do usuário.
+    Define o banco de dados ativo da sessão entre os configurados no catálogo.
+    Suporta busca inteligente por nome exato, case-insensitive, substring no alias ou tag (ex: 'auditoria' -> 'erp_auditoria').
     Todas as chamadas seguintes que não especificarem 'db_alias' utilizarão este banco ativo.
     """
     return connection_manager.set_default_database(alias)
@@ -78,12 +79,14 @@ def fb_configure_database(
     password: str = "masterkey",
     charset: str = "WIN1252",
     description: Optional[str] = None,
+    projects: Optional[list] = None,
+    tags: Optional[list] = None,
     set_as_default: bool = False,
     save_to_file: bool = True
 ) -> dict:
     """
-    Cadastra ou atualiza um banco de dados dinamicamente no MCP e salva no arquivo local (.firebird-mcp.json).
-    Ideal para adicionar conexões extras sem reiniciar a IDE.
+    Cadastra ou atualiza um banco de dados dinamicamente no catálogo (global ou local).
+    Permite associar o banco a projetos específicos (projects=['web_projects']) e tags para filtragem contextual.
     """
     return connection_manager.configure_database(
         alias=alias,
@@ -94,6 +97,8 @@ def fb_configure_database(
         password=password,
         charset=charset,
         description=description,
+        projects=projects,
+        tags=tags,
         set_as_default=set_as_default,
         save_to_file=save_to_file
     )
@@ -101,8 +106,8 @@ def fb_configure_database(
 @mcp.tool()
 def fb_reload_config(config_path: Optional[str] = None) -> dict:
     """
-    Recarrega a configuração de bancos a partir do arquivo .firebird-mcp.json
-    do projeto ou de um caminho explícito.
+    Recarrega a configuração de bancos a partir do Catálogo Central Global (~/.firebird-mcp.json)
+    ou arquivo local do projeto.
     """
     connection_manager.reload_config(config_path)
     return connection_manager.list_databases()

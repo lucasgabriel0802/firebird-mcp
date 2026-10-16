@@ -81,12 +81,12 @@ Crie um arquivo `.firebird-mcp.json` na raiz do seu repositório:
 
 > **Dica de Segurança:** Adicione `.firebird-mcp.json` ao seu `.gitignore` caso utilize senhas reais de ambientes sensíveis, disponibilizando um `.firebird-mcp.example.json` no repositório.
 
-### Como o Agente Interage com Múltiplos Bancos:
-- **Criar configuração local:** A ferramenta `fb_create_config(...)` salva o `.firebird-mcp.json` na raiz do projeto solicitando os dados ao usuário.
-- **Consultar banco específico:** Todas as ferramentas aceitam o parâmetro `db_alias` (ex: `fb_query(sql="SELECT * FROM LOGS", db_alias="auditoria")`).
-- **Listar bancos disponíveis:** A ferramenta `fb_list_databases()` lista todos os apelidos configurados, status de seleção e qual é o ativo.
-- **Alternar o banco ativo:** A ferramenta `fb_use_database("auditoria")` define o banco padrão para todas as chamadas seguintes (obrigatório perguntar ao usuário caso haja múltiplos bancos configurados).
-- **Adicionar banco dinamicamente:** `fb_configure_database(...)` permite cadastrar um banco via chat persistindo no arquivo `.firebird-mcp.json`.
+### Como o Agente Interage com Catálogo de Bancos e Projetos:
+- **Catálogo Central Global (~/.firebird-mcp.json):** Mantém todos os bancos da máquina centralizados em um único arquivo, com metadados de projetos (`projects: ["web_projects", "erp"]`) e tags.
+- **Precedência Local:** Se o projeto possuir um `.firebird-mcp.json` na sua raiz, ele tem precedência sobre o catálogo global.
+- **Direcionamento Direto em Investigações:** Se você mencionar o banco no prompt (ex: *"investigar bug no banco de auditoria"*), o agente conecta imediatamente via `db_alias` ou `fb_use_database` sem fazer perguntas de confirmação.
+- **Filtragem Contextual por Projeto:** Ao rodar comandos genéricos sem especificar banco, o MCP filtra os bancos associados ao projeto ativo. Se houver mais de um, pergunta em qual banco trabalhar antes de executar; se houver apenas um, auto-seleciona.
+- **Busca Inteligente por Aproximação:** `fb_use_database("auditoria")` reconhece aliases como `erp_auditoria` ou tags.
 
 ---
 
@@ -95,11 +95,11 @@ Crie um arquivo `.firebird-mcp.json` na raiz do seu repositório:
 ### Gerenciamento de Conexões e Bancos
 | Ferramenta | Parâmetros | Descrição |
 | :--- | :--- | :--- |
-| `fb_create_config` | `database`, `alias`, `host`, `port`, `user`, `password`, `charset`, `description`, `filepath` | Cria e salva o arquivo `.firebird-mcp.json` na raiz do projeto. Obrigatório quando não existir configuração local. |
-| `fb_list_databases` | *Nenhum* | Lista todos os bancos configurados no projeto, o arquivo `.firebird-mcp.json` ativo, status de seleção e o banco ativo na sessão. |
-| `fb_use_database` | `alias` | Alterna o banco padrão da sessão para o apelido informado. |
-| `fb_configure_database` | `alias`, `database`, `host`, `port`, `user`, `password`, `charset`, `set_as_default`, `save_to_file` | Cadastra ou altera uma conexão em tempo de execução e persiste no arquivo local. |
-| `fb_reload_config` | `config_path` *(opcional)* | Recarrega o arquivo `.firebird-mcp.json` do projeto. |
+| `fb_create_config` | `database`, `alias`, `host`, `port`, `user`, `password`, `charset`, `description`, `projects`, `tags`, `filepath` | Cria e salva o Catálogo Central Global (`~/.firebird-mcp.json`) ou arquivo local com projetos e tags. |
+| `fb_list_databases` | `project_filter` *(opcional)* | Lista todos os bancos configurados no catálogo global/local, identificando os bancos associados ao projeto ativo. |
+| `fb_use_database` | `alias` | Alterna o banco ativo da sessão com busca inteligente (por alias, substring ou tag). |
+| `fb_configure_database` | `alias`, `database`, `host`, `port`, `user`, `password`, `charset`, `description`, `projects`, `tags`, `set_as_default`, `save_to_file` | Cadastra ou altera uma conexão com projetos/tags e persiste no arquivo global/local. |
+| `fb_reload_config` | `config_path` *(opcional)* | Recarrega as configurações a partir do catálogo global ou arquivo local. |
 
 ### Inspeção e Metadados
 | Ferramenta | Parâmetros | Descrição |

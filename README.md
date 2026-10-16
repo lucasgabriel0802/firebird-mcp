@@ -81,12 +81,12 @@ Place a `.firebird-mcp.json` file in your repository:
 
 > **Security Tip:** Add `.firebird-mcp.json` to your `.gitignore` when working with sensitive credentials, providing a `.firebird-mcp.example.json` template for team members.
 
-### Interacting with Multiple Databases:
-- **Create local configuration:** The `fb_create_config(...)` tool creates `.firebird-mcp.json` in the project root by requesting connection parameters from the user.
-- **Target a specific database:** All tools accept an optional `db_alias` parameter (e.g., `fb_query(sql="SELECT * FROM LOGS", db_alias="audit")`).
-- **List available databases:** The `fb_list_databases()` tool lists all configured aliases, selection status, and marks the currently active database.
-- **Switch the active database:** The `fb_use_database("audit")` tool sets the active database for subsequent commands during the session (mandatory to ask the user if multiple databases are configured).
-- **Add databases on the fly:** `fb_configure_database(...)` allows registering new database connections dynamically during chat and persisting to `.firebird-mcp.json`.
+### Interacting with Central Database Catalog & Projects:
+- **Central Global Catalog (~/.firebird-mcp.json):** Keeps all Firebird database connections centralized in one single file on your machine, with project metadata (`projects: ["web_projects", "erp"]`) and tags.
+- **Local Config Precedence:** If a project has a local `.firebird-mcp.json` in its root directory, it takes precedence over the global catalog.
+- **Direct Investigation Targeting:** When you mention a database in your prompt (e.g. *"investigate bug on audit database"*), the assistant connects directly via `db_alias` or `fb_use_database` without asking redundant confirmation questions.
+- **Project Contextual Filtering:** When running generic commands, the MCP filters databases associated with the active project. If multiple exist, it asks you to pick one; if only one exists, it auto-selects.
+- **Smart Alias Resolution:** `fb_use_database("audit")` automatically resolves matching aliases like `erp_audit_prod` or tags.
 
 ---
 
@@ -95,11 +95,11 @@ Place a `.firebird-mcp.json` file in your repository:
 ### Database & Connection Management
 | Tool | Parameters | Description |
 | :--- | :--- | :--- |
-| `fb_create_config` | `database`, `alias`, `host`, `port`, `user`, `password`, `charset`, `description`, `filepath` | Creates and saves `.firebird-mcp.json` in project root. Mandatory when no local config exists. |
-| `fb_list_databases` | *None* | Lists all databases configured for the current project, selection status, and active session database. |
-| `fb_use_database` | `alias` | Switches the active database for the current session. |
-| `fb_configure_database` | `alias`, `database`, `host`, `port`, `user`, `password`, `charset`, `set_as_default`, `save_to_file` | Registers or updates a connection dynamically at runtime and persists to local config. |
-| `fb_reload_config` | `config_path` *(optional)* | Reloads the project `.firebird-mcp.json` file. |
+| `fb_create_config` | `database`, `alias`, `host`, `port`, `user`, `password`, `charset`, `description`, `projects`, `tags`, `filepath` | Creates and saves Central Global Catalog (`~/.firebird-mcp.json`) or local file with project tags. |
+| `fb_list_databases` | `project_filter` *(optional)* | Lists all databases in catalog, highlighting matches for the active project. |
+| `fb_use_database` | `alias` | Switches the active database for the current session (with smart match by name, substring, or tag). |
+| `fb_configure_database` | `alias`, `database`, `host`, `port`, `user`, `password`, `charset`, `description`, `projects`, `tags`, `set_as_default`, `save_to_file` | Registers or updates a connection with projects/tags dynamically and persists to file. |
+| `fb_reload_config` | `config_path` *(optional)* | Reloads the catalog from global or local file. |
 
 ### Schema & Metadata Introspection
 | Tool | Parameters | Description |
