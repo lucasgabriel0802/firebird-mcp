@@ -18,3 +18,7 @@ build/
 firebird-mcp.json
 .firebird.json
 firebird.config.json
+
+# Local tools
+mcp-publisher.exe
+mcp-publisher
