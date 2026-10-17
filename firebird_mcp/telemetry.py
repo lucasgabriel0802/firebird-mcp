@@ -57,12 +57,32 @@ def get_database_health(db_alias: Optional[str] = None) -> Dict[str, Any]:
         next_trans = db_row[6]
         sweep_interval = db_row[7]
 
-        # MON counts
-        cursor.execute(mon_counts_sql)
-        counts_row = cursor.fetchone()
-        attachments = counts_row[0]
-        transactions = counts_row[1]
-        statements = counts_row[2]
+        # MON counts (MON$SYSTEM_FLAG só existe a partir do Firebird 3.0)
+        attachments = 0
+        transactions = 0
+        statements = 0
+        try:
+            cursor.execute(mon_counts_sql)
+            counts_row = cursor.fetchone()
+            attachments = counts_row[0]
+            transactions = counts_row[1]
+            statements = counts_row[2]
+        except Exception:
+            # Fallback para Firebird 2.5 / 2.1 onde MON$SYSTEM_FLAG não existe
+            try:
+                fb25_counts_sql = """
+                    SELECT (SELECT COUNT(*) FROM MON$ATTACHMENTS) AS ATTACHMENTS,
+                           (SELECT COUNT(*) FROM MON$TRANSACTIONS) AS TRANSACTIONS,
+                           (SELECT COUNT(*) FROM MON$STATEMENTS) AS STATEMENTS
+                    FROM RDB$DATABASE
+                """
+                cursor.execute(fb25_counts_sql)
+                counts_row = cursor.fetchone()
+                attachments = counts_row[0]
+                transactions = counts_row[1]
+                statements = counts_row[2]
+            except Exception:
+                pass
 
         conn.commit()
 
