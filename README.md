@@ -395,7 +395,11 @@ This MCP server works hand-in-hand with the [`firebird-master`](https://github.c
 
 ## ⚖️ Disclaimer & Trademarks
 
-This is an independent open-source community project licensed under the MIT License. It is not affiliated with, funded by, endorsed by, or officially associated with the Firebird Project or the Firebird Foundation. "Firebird" is a registered trademark of the Firebird Foundation.
+<!-- mcp-name: io.github.lucasgabriel0802/firebird-mcp -->
+
+- **Firebird:** "Firebird" is a registered trademark of the Firebird Foundation. This is an independent open-source community project licensed under the MIT License and is not affiliated with, funded by, endorsed by, or officially associated with the Firebird Project or the Firebird Foundation.
+- **Model Context Protocol:** "Model Context Protocol" and "MCP" are trademarks of Anthropic, PBC. This project is an independent implementation compliant with open MCP standards.
+- **Limitation of Liability:** This software connects directly to database servers and executes queries or commands per user/agent instruction. Always maintain regular database backups and verify queries prior to execution on production environments. Under the terms of the MIT License, the software is provided "AS IS", without warranty of any kind, and the authors shall not be liable for any damages or data loss.
 
 ---
 

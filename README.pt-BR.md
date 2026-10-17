@@ -395,7 +395,11 @@ Este servidor MCP forma uma **dupla imbatível** com a skill [`firebird-master`]
 
 ## ⚖️ Isenção de Responsabilidade (Disclaimer) e Marcas
 
-Este é um projeto independente de código aberto e uso livre pela comunidade, distribuído sob a licença MIT. Não possui vínculo, afiliação, patrocínio, homologação ou endosso oficial com o Projeto Firebird ou com a Firebird Foundation. "Firebird" é uma marca registrada da Firebird Foundation.
+<!-- mcp-name: io.github.lucasgabriel0802/firebird-mcp -->
+
+- **Firebird:** "Firebird" é uma marca registrada da Firebird Foundation. Este é um projeto de código aberto independente e comunitário, distribuído sob a licença MIT, e não possui qualquer vínculo, afiliação, patrocínio, homologação ou endosso oficial com o Projeto Firebird ou com a Firebird Foundation.
+- **Model Context Protocol:** "Model Context Protocol" e "MCP" são marcas da Anthropic, PBC. Este projeto é uma implementação independente em conformidade com as especificações abertas do MCP.
+- **Limitação de Responsabilidade:** Este software conecta-se diretamente a instâncias de banco de dados e executa consultas e operações conforme instruído pelo usuário ou agente. Mantenha rotinas regulares de backup e verifique comandos antes da execução em ambientes de produção. Sob os termos da licença MIT, o software é fornecido "NO ESTADO EM QUE SE ENCONTRA" (*AS IS*), sem garantias de qualquer natureza, não respondendo os autores por eventuais perdas ou danos materiais ou operacionais.
 
 ---
 

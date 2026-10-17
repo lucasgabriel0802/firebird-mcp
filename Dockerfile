@@ -4,6 +4,7 @@ FROM python:3.12-slim
 # Metadados
 LABEL maintainer="Lucas Gabriel dos Santos"
 LABEL description="Open-source Model Context Protocol (MCP) Server for Firebird Database"
+LABEL io.modelcontextprotocol.server.name="io.github.lucasgabriel0802/firebird-mcp"
 
 # Variáveis essenciais para execução Python e MCP
 ENV PYTHONUNBUFFERED=1 \

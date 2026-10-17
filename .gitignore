@@ -12,3 +12,9 @@ build/
 .pytest_cache/
 *.fdb
 *.gdb
+
+# Firebird MCP local configurations (contain sensitive credentials and paths)
+.firebird-mcp.json
+firebird-mcp.json
+.firebird.json
+firebird.config.json
