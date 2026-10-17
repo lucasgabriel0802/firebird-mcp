@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.lucasgabriel0802/firebird-mcp",
+  "title": "Firebird MCP Server",
+  "description": "Firebird (2.5 to 5.0) MCP server with PLAN inspection and multi-database routing",
+  "repository": {
+    "url": "https://github.com/lucasgabriel0802/firebird-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "firebird-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "FIREBIRD_CONFIG_PATH",
+          "description": "Optional explicit path to the Firebird MCP JSON configuration file",
+          "isRequired": false,
+          "format": "filepath",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
